@@ -1,0 +1,24 @@
+{
+  "name": "winmousemanager",
+  "version": "1.0.0",
+  "description": "App to help to configure your mouse",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "electro ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rafaelzimmermann/winmousemanager.git"
+  },
+  "author": "Rafael Zimmermann",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rafaelzimmermann/winmousemanager/issues"
+  },
+  "homepage": "https://github.com/rafaelzimmermann/winmousemanager#readme",
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "^19.0.4"
+  }
+}
