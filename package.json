@@ -5,7 +5,20 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "electro ."
+    "start": "electron .",
+    "app:dist": "electron-builder",
+    "app:dir": "electron-builder --dir",
+    "postinstall": "electron-rebuild"
+  },
+  "build": {
+    "appId": "page.blackcoffee",
+    "win": {
+      "target": "portable"
+    },
+    "portable": {
+      "unicode": false,
+      "artifactName": "winmousemanager.exe"
+    }
   },
   "repository": {
     "type": "git",
@@ -17,8 +30,13 @@
     "url": "https://github.com/rafaelzimmermann/winmousemanager/issues"
   },
   "homepage": "https://github.com/rafaelzimmermann/winmousemanager#readme",
-  "dependencies": {},
   "devDependencies": {
-    "electron": "^19.0.4"
+    "electron": "^19.0.4",
+    "electron-builder": "^23.0.3",
+    "electron-packager": "^15.5.1"
+  },
+  "dependencies": {
+    "node-hid": "^2.1.1",
+    "regedit": "^5.1.1"
   }
 }
