@@ -12,6 +12,7 @@
   },
   "build": {
     "appId": "page.blackcoffee",
+    "icon": "assets/icons/winmousemanager.png",
     "win": {
       "target": "portable"
     },
