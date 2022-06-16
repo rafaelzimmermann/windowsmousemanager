@@ -1,14 +1,20 @@
 {
   "name": "winmousemanager",
   "version": "1.0.0",
+  "private": true,
   "description": "App to help to configure your mouse",
-  "main": "index.js",
+  "main": "public/electron.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "electron .",
     "app:dist": "electron-builder",
     "app:dir": "electron-builder --dir",
-    "postinstall": "electron-rebuild"
+    "postinstall": "electron-rebuild",
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "dev": "concurrently -k \"cross-env BROWSER=none  npm start\" \"cross-env ELECTRON_IS_DEV=1 npm run electron\"",
+    "electron": "wait-on tcp:3000 && electron .",
+    "all": "npm run build && npm run app:dir && npm run app:dist"
   },
   "build": {
     "appId": "page.blackcoffee",
@@ -30,14 +36,43 @@
   "bugs": {
     "url": "https://github.com/rafaelzimmermann/winmousemanager/issues"
   },
-  "homepage": "https://github.com/rafaelzimmermann/winmousemanager#readme",
+  "homepage": "./",
   "devDependencies": {
+    "concurrently": "^7.2.2",
+    "cross-env": "^7.0.3",
     "electron": "^19.0.4",
     "electron-builder": "^23.0.3",
-    "electron-packager": "^15.5.1"
+    "electron-packager": "^15.5.1",
+    "electron-rebuild": "^3.2.7",
+    "wait-on": "^6.0.1"
   },
   "dependencies": {
+    "@testing-library/jest-dom": "^5.11.4",
+    "@testing-library/react": "^11.1.0",
+    "@testing-library/user-event": "^12.1.10",
+    "concurrently": "^6.0.0",
+    "web-vitals": "^1.0.1",
+    "@popperjs/core": "^2.11.5",
+    "bootstrap": "^5.2.0-beta1",
+    "bootstrap-icons": "^1.8.3",
     "node-hid": "^2.1.1",
-    "regedit": "^5.1.1"
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-icons": "^4.4.0",
+    "react-scripts": "^5.0.1",
+    "regedit": "^5.1.1",
+    "electron-is-dev": "^2.0.0"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
 }
