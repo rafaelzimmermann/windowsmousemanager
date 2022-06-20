@@ -1,7 +1,14 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
 const url = require('url');
 const path = require('path');
 const isDev = require('electron-is-dev');
+
+const devices = require('./devices');
+
+ipcMain.on('list-devices', async (e) => {
+  const result = await devices.listMices()
+  e.returnValue = result
+})
 
 function createWindow() {
   // Create the browser window.
@@ -10,7 +17,8 @@ function createWindow() {
     height: 600,
     webPreferences: {
       nodeIntegration: true,
-      enableRemoteModule:true,
+      enableRemoteModule: true,
+      contextIsolation: false
     },
   });
 

@@ -1,6 +1,7 @@
 var registry = require('regedit').promisified
 var hid = require('node-hid');
 
+
 const DEVICES_PATH = 'HKLM\\SYSTEM\\CurrentControlSet\\Enum\\HID'
 
 
@@ -48,7 +49,5 @@ async function listMices() {
         })  
     })
 }
-
-console.log(hid.devices())
 
 exports.listMices = listMices

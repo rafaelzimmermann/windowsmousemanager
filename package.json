@@ -7,14 +7,14 @@
   "scripts": {
     "app:dist": "electron-builder",
     "app:dir": "electron-builder --dir",
-    "postinstall": "electron-rebuild",
+    "postinstall": "electron-rebuild -f -w electron",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "dev": "concurrently -k \"cross-env BROWSER=none  npm start\" \"cross-env ELECTRON_IS_DEV=1 npm run electron\"",
     "electron": "wait-on tcp:3000 && electron .",
-    "all": "npm run build && npm run app:dir && npm run app:dist"
+    "all": "npm run postinstall && npm run build && npm run app:dir && npm run app:dist"
   },
   "build": {
     "appId": "page.blackcoffee",
@@ -47,21 +47,21 @@
     "wait-on": "^6.0.1"
   },
   "dependencies": {
+    "@popperjs/core": "^2.11.5",
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",
     "@testing-library/user-event": "^12.1.10",
-    "concurrently": "^6.0.0",
-    "web-vitals": "^1.0.1",
-    "@popperjs/core": "^2.11.5",
     "bootstrap": "^5.2.0-beta1",
     "bootstrap-icons": "^1.8.3",
+    "concurrently": "^6.0.0",
+    "electron-is-dev": "^2.0.0",
     "node-hid": "^2.1.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-icons": "^4.4.0",
     "react-scripts": "^5.0.1",
     "regedit": "^5.1.1",
-    "electron-is-dev": "^2.0.0"
+    "web-vitals": "^1.0.1"
   },
   "browserslist": {
     "production": [
