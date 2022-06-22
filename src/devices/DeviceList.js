@@ -20,15 +20,15 @@ class DeviceList extends React.Component {
                 <thead>
                     <tr>
                     <th scope="col">#</th>
-                    <th scope="col">Device Path</th>
+                    <th scope="col">Manufacturer</th>
                     <th scope="col"></th>
                     </tr>
                 </thead>
                 <tbody>
                     {this.state.devices.map((d, i) =>
-                        <tr>
+                        <tr key={d['path']}>
                         <th scope="row">{i}</th>
-                        <td>{d['path']}</td>
+                        <td>{(d['hid-info'] || {})['manufacturer'] || '-'}</td>
                         </tr>
                     )}
                 </tbody>
