@@ -1,5 +1,8 @@
 import React from "react";
-
+import ReactDOM from 'react-dom/client';
+const {
+    Link
+} = ReactDOM
 const {ipcRenderer} = window.require('electron')
 
 
@@ -10,10 +13,10 @@ class DeviceList extends React.Component {
     }
     constructor() {
         super()
-        this.state.devices = ipcRenderer.sendSync('list-devices')
+        this.state.devices = ipcRenderer.sendSync('list-devices').filter(d => d["hid-info"])
+        console.log(this.state)
     }
     render() {
-
         return (
             <div className='DeviceList'>
             <table className="table">
@@ -28,7 +31,11 @@ class DeviceList extends React.Component {
                     {this.state.devices.map((d, i) =>
                         <tr key={d['path']}>
                         <th scope="row">{i}</th>
-                        <td>{(d['hid-info'] || {})['manufacturer'] || '-'}</td>
+                        <td>
+                            <a href={"/device/" + d["path"]}>
+                                {(d['hid-info'] || {})['manufacturer'] || '-'}
+                            </a>
+                        </td>
                         </tr>
                     )}
                 </tbody>

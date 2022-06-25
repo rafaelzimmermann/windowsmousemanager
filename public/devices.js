@@ -57,9 +57,14 @@ async function listHID() {
     return await addDeviceProperties(devices)
 }
 
+cache = {}
+
 async function listMices() {
+    if (cache.hasOwnProperty("devices")) {
+        return cache["devices"]
+    }
     var hidDevices = await hid.devices()
-    return await listHID().then((devices) => {
+    var devices = await listHID().then((devices) => {
         return devices
         .filter(d => {
             return d.values !== undefined && 'FlipFlopWheel' in d['values']})
@@ -72,6 +77,8 @@ async function listMices() {
             return d
         })
     })
+    cache["devices"] = devices
+    return devices
 }
 
 exports.listMices = listMices
