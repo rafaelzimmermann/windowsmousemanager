@@ -10,6 +10,31 @@ ipcMain.on('list-devices', async (e) => {
   e.returnValue = result
 })
 
+let cache = {}
+
+ipcMain.on('list-devices', async (e) => {
+  if (cache.hasOwnProperty('devices')) {
+    e.returnValue = cache['devices']
+    return
+  }
+  const result = await devices.listMices()
+  if (result.length > 0) {
+    cache['devices'] = result
+  }
+  e.returnValue = result
+})
+
+ipcMain.on('list-devices-no-cache', async (e) => {
+  const result = await devices.listMices()
+  if (result.length > 0) {
+    cache['devices'] = result
+  }
+  e.returnValue = result
+})
+ipcMain.on('update-device', async (e, payload) => {
+  e.returnValue = await devices.updateRegistry(payload).catch((r) => r)
+})
+
 function createWindow() {
   // Create the browser window.
   const win = new BrowserWindow({

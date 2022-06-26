@@ -57,12 +57,8 @@ async function listHID() {
     return await addDeviceProperties(devices)
 }
 
-cache = {}
 
 async function listMices() {
-    if (cache.hasOwnProperty("devices")) {
-        return cache["devices"]
-    }
     var hidDevices = await hid.devices()
     var devices = await listHID().then((devices) => {
         return devices
@@ -77,8 +73,11 @@ async function listMices() {
             return d
         })
     })
-    cache["devices"] = devices
     return devices
 }
 
-exports.listMices = listMices
+async function updateRegistry(payload) {
+    return await registry.putValue(payload)
+}
+
+module.exports = { listMices, updateRegistry }

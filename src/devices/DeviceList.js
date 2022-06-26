@@ -1,6 +1,8 @@
 import React from "react";
 import './DeviceList.css';
 import vendorIds from './vendorid'
+import Mouse from './icons/mouse'
+import ArrowClockwise from "./icons/arrow-clockwise";
 const {ipcRenderer} = window.require('electron')
 
 
@@ -14,6 +16,7 @@ class DeviceList extends React.Component {
         super()
         this.state.devices = ipcRenderer.sendSync('list-devices').filter(d => d["hid-info"])
         this.state.device = this.state.devices[0]
+        console.log(this.state)
     }
     render() {
         const selectDevice = (index) => {
@@ -21,15 +24,36 @@ class DeviceList extends React.Component {
             this.forceUpdate()
         }
         const changeVerticalScroll = (event) => {
-            this.state.device.values.FlipFlopWheel = parseInt(event.target.value);
+            let device = this.state.device 
+            device.values.FlipFlopWheel.value = parseInt(event.target.value);
+            let payload = {}
+            payload[device["parametersPath"]] = device.values
+            console.log(payload)
+            console.log(payload[device["parametersPath"]])
+            ipcRenderer.sendSync('update-device', payload)
+
+            refresh()
         }
         function toPaddedHexString(num, len) {
             let str = num.toString(16);
             return "0".repeat(len - str.length) + str;
         }
-        const vendorName = () => {
-            let vendorId = this.state.device["hid-info"]["vendorId"]    
+        const vendorName = (vendorId) => {
             return vendorIds[toPaddedHexString(vendorId, 4)] || ""
+        }
+        const refresh = () => {
+            let selectedDevicePath = this.state.device.path
+
+            this.state.devices = ipcRenderer.sendSync('list-devices-no-cache').filter(d => d["hid-info"])
+            this.state.devices.forEach((d) => {
+                if (d.path == selectedDevicePath) {
+                    this.state.device = d
+                }
+            })
+            if (this.state.device == undefined) {
+                this.state.device = this.state.devices[0]
+            }
+            this.forceUpdate()
         }
         return (
             <div className='DeviceList'>
@@ -41,15 +65,15 @@ class DeviceList extends React.Component {
                         <tr>
                         <th scope="col">#</th>
                         <th scope="col">Manufacturer</th>
-                        <th scope="col"></th>
+                        <th scope="col" className="clickable-row"><ArrowClockwise onClick={() => refresh()}></ArrowClockwise></th>
                         </tr>
                     </thead>
                     <tbody>
                         {this.state.devices.map((d, i) =>
                             <tr key={d['path']} onClick={() => selectDevice(i)} className="clickable-row" index={i}>
-                                <th scope="row">{i}</th>
+                                <th scope="row"><Mouse></Mouse></th>
                                 <td>
-                                    {(d['hid-info'] || {})['manufacturer'] || '-'}                                        
+                                    {(d['hid-info'] || {})['manufacturer'] || vendorName(d["hid-info"]["vendorId"]) }                                        
                                 </td>
                             </tr>
                         )}
@@ -88,7 +112,7 @@ class DeviceList extends React.Component {
                                         className="form-control"
                                         id="vendor-name"
                                         placeholder="Unknown"
-                                        value={vendorName()}
+                                        value={vendorName(this.state.device["hid-info"]["vendorId"])}
                                         disabled>
                                     </input>
                                 </div>
