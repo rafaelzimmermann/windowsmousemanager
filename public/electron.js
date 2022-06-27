@@ -5,34 +5,35 @@ const isDev = require('electron-is-dev');
 
 const devices = require('./devices');
 
+devices.deployVBS()
+
 ipcMain.on('list-devices', async (e) => {
   const result = await devices.listMices()
-  e.returnValue = result
+  return result
 })
 
 let cache = {}
 
-ipcMain.on('list-devices', async (e) => {
+ipcMain.handle('list-devices', async (e) => {
   if (cache.hasOwnProperty('devices')) {
-    e.returnValue = cache['devices']
-    return
+    return cache['devices']
   }
   const result = await devices.listMices()
   if (result.length > 0) {
     cache['devices'] = result
   }
-  e.returnValue = result
+  return result
 })
 
-ipcMain.on('list-devices-no-cache', async (e) => {
+ipcMain.handle('list-devices-no-cache', async (e) => {
   const result = await devices.listMices()
   if (result.length > 0) {
     cache['devices'] = result
   }
-  e.returnValue = result
+  return result
 })
 ipcMain.on('update-device', async (e, payload) => {
-  e.returnValue = await devices.updateRegistry(payload).catch((r) => r)
+  return await devices.updateRegistry(payload).catch((r) => r)
 })
 
 function createWindow() {
@@ -51,14 +52,14 @@ function createWindow() {
     win.loadURL('http://localhost:3000')
     win.webContents.openDevTools({ mode: 'detach' });
   } else {
-    win.loadURL( `file://${path.join(__dirname, '../build/index.html')}`)
+    win.loadURL(url.format({
+      pathname: path.join(__dirname, 'index.html'),
+      protocol: 'file',
+      slashes: true
+    }))
   }
+  
 }
-
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
-app.whenReady().then(createWindow);
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
@@ -74,3 +75,14 @@ app.on('activate', () => {
     createWindow();
   }
 });
+
+process.on('uncaughtException', function (error) {
+  console.log(error)
+  app.quit()
+})
+
+// This method will be called when Electron has finished
+// initialization and is ready to create browser windows.
+// Some APIs can only be used after this event occurs.
+app.whenReady().then(createWindow);
+

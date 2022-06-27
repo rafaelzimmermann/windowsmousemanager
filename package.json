@@ -4,6 +4,8 @@
   "private": true,
   "description": "App to help to configure your mouse",
   "main": "public/electron.js",
+  "homepath": "https://github.com/rafaelzimmermann/windowsmousemanager",
+  "funding": "https://buymeacoffee.com/r25b8yt77fh",
   "scripts": {
     "app:dist": "electron-builder",
     "app:dir": "electron-builder --dir",

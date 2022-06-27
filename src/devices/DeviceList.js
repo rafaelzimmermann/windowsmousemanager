@@ -3,20 +3,30 @@ import './DeviceList.css';
 import vendorIds from './vendorid'
 import Mouse from './icons/mouse'
 import ArrowClockwise from "./icons/arrow-clockwise";
-const {ipcRenderer} = window.require('electron')
+const electron = window.require('electron');
+const ipcRenderer  = electron.ipcRenderer;
 
 
 
 class DeviceList extends React.Component {
     state = {
         devices: [],
-        device: {}
+        device: {
+            "hid-info": {},
+            "values":{
+                "FlipFlopWheel": {}
+            }
+        }
     }
     constructor() {
         super()
-        this.state.devices = ipcRenderer.sendSync('list-devices').filter(d => d["hid-info"])
-        this.state.device = this.state.devices[0]
-        console.log(this.state)
+        ipcRenderer.invoke('list-devices')
+            .then((devices) => {
+                this.state.devices = (devices || []).filter(d => d["hid-info"])
+                this.state.device = this.state.devices[0]
+                this.forceUpdate()
+            })
+            .catch(err => console.log(err))
     }
     render() {
         const selectDevice = (index) => {
@@ -28,23 +38,26 @@ class DeviceList extends React.Component {
             device.values.FlipFlopWheel.value = parseInt(event.target.value);
             let payload = {}
             payload[device["parametersPath"]] = device.values
-            console.log(payload)
-            console.log(payload[device["parametersPath"]])
-            ipcRenderer.sendSync('update-device', payload)
-
-            refresh()
+            ipcRenderer
+                .invoke('update-device', payload)
+                .then(() => { refresh() })
+                .catch(err => console.log(err))
         }
         function toPaddedHexString(num, len) {
             let str = num.toString(16);
             return "0".repeat(len - str.length) + str;
         }
         const vendorName = (vendorId) => {
+            vendorId = vendorId || 0
             return vendorIds[toPaddedHexString(vendorId, 4)] || ""
+        }
+        const selectedClass = (i) => {
+            return this.state.devices[i]["path"] === this.state.device["path"] ? "selected" : ""
         }
         const refresh = () => {
             let selectedDevicePath = this.state.device.path
 
-            this.state.devices = ipcRenderer.sendSync('list-devices-no-cache').filter(d => d["hid-info"])
+            this.state.devices = (ipcRenderer.sendSync('list-devices-no-cache') || []).filter(d => d["hid-info"])
             this.state.devices.forEach((d) => {
                 if (d.path == selectedDevicePath) {
                     this.state.device = d
@@ -63,18 +76,19 @@ class DeviceList extends React.Component {
                     <table className="table">
                     <thead>
                         <tr>
-                        <th scope="col">#</th>
+                        <th scope="col"></th>
                         <th scope="col">Manufacturer</th>
                         <th scope="col" className="clickable-row"><ArrowClockwise onClick={() => refresh()}></ArrowClockwise></th>
                         </tr>
                     </thead>
                     <tbody>
                         {this.state.devices.map((d, i) =>
-                            <tr key={d['path']} onClick={() => selectDevice(i)} className="clickable-row" index={i}>
+                            <tr key={d['path']} onClick={() => selectDevice(i)} className={"clickable-row " + selectedClass(i) } index={i}>
                                 <th scope="row"><Mouse></Mouse></th>
                                 <td>
                                     {(d['hid-info'] || {})['manufacturer'] || vendorName(d["hid-info"]["vendorId"]) }                                        
                                 </td>
+                                <td></td>
                             </tr>
                         )}
                     </tbody>
