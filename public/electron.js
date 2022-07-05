@@ -7,10 +7,6 @@ const devices = require('./devices');
 
 devices.deployVBS()
 
-ipcMain.on('list-devices', async (e) => {
-  const result = await devices.listMices()
-  return result
-})
 
 let cache = {}
 
@@ -32,8 +28,9 @@ ipcMain.handle('list-devices-no-cache', async (e) => {
   }
   return result
 })
-ipcMain.on('update-device', async (e, payload) => {
-  return await devices.updateRegistry(payload).catch((r) => r)
+ipcMain.handle('update-device', async (e, payload) => {
+  console.log(payload)
+  return await devices.updateRegistry(payload).catch(console.log)
 })
 
 function createWindow() {

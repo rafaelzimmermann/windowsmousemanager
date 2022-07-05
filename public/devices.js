@@ -5,6 +5,47 @@ const fs = require('fs');
 const os = require('os');
 const { data } = require('./vbsfiles')
 
+let DeviceBuilder = class {
+    constructor() {
+        this.data = {}
+    }
+
+    path(value) {
+        this.data["path"] = value
+        return this
+    }
+
+    manufacturer(value) {
+        this.data["manufacturer"] = value
+        return this
+    }
+
+    vendorId(value) {
+        this.data["vendorId"] = value
+        return this
+    }
+
+    productId(value) {
+        this.data["productId"] = value
+        return this
+    }
+    
+    naturalScroll(value) {
+        this.data["naturalScroll"] = value
+        return this
+    }
+
+    deviceRegistryConfig(value) {
+        this.data["deviceRegistryConfig"] = value
+        return this
+    }
+
+    get build() {
+        return this.data
+    }
+
+}
+
 
 var createRegeditResourcesDir = () => {
     const appPrefix = 'win_mouse_manager';
@@ -19,7 +60,6 @@ const REGEDIT_VBS = createRegeditResourcesDir();
 
 var deployVBS = () => {
     const files = JSON.parse(JSON.parse(Buffer.from(data, 'base64').toString('utf8')))
-    console.log(files)
     Object.entries(files).forEach((entry) => {
         let fileName = entry[0]
         let fileData = entry[1]
@@ -107,7 +147,19 @@ async function listMices() {
             return d
         })
     })
-    return devices
+    let result = devices
+        .filter(d => d["hid-info"])
+        .map((d) => {
+            return new DeviceBuilder()
+                .path(d['parametersPath'])
+                .manufacturer((d['hid-info'] || {})['manufacturer'])
+                .vendorId(d['hid-info']['vendorId'])
+                .productId(d['hid-info']['productId'])
+                .naturalScroll(d['values']['FlipFlopWheel']['value'] == 1)
+                .deviceRegistryConfig(d['values'])
+                .build
+        })
+    return result
 }
 
 async function updateRegistry(payload) {

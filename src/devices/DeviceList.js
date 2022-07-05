@@ -3,6 +3,7 @@ import './DeviceList.css';
 import vendorIds from './vendorid'
 import Mouse from './icons/mouse'
 import ArrowClockwise from "./icons/arrow-clockwise";
+import Device from './device';
 const electron = window.require('electron');
 const ipcRenderer  = electron.ipcRenderer;
 
@@ -11,18 +12,17 @@ const ipcRenderer  = electron.ipcRenderer;
 class DeviceList extends React.Component {
     state = {
         devices: [],
-        device: {
-            "hid-info": {},
-            "values":{
-                "FlipFlopWheel": {}
-            }
-        }
+        device: new Device({}),
+        _isMount: false
     }
     constructor() {
         super()
         ipcRenderer.invoke('list-devices')
             .then((devices) => {
-                this.state.devices = (devices || []).filter(d => d["hid-info"])
+                console.log(devices)
+                this.state.devices = (devices || []).map(d => {
+                    return new Device(d)
+                })
                 this.state.device = this.state.devices[0]
                 this.forceUpdate()
             })
@@ -35,9 +35,9 @@ class DeviceList extends React.Component {
         }
         const changeVerticalScroll = (event) => {
             let device = this.state.device 
-            device.values.FlipFlopWheel.value = parseInt(event.target.value);
+            device.updateNaturalScroll(parseInt(event.target.value) == 1);
             let payload = {}
-            payload[device["parametersPath"]] = device.values
+            payload[device.path] = device.deviceRegistryConfig
             ipcRenderer
                 .invoke('update-device', payload)
                 .then(() => { refresh() })
@@ -52,12 +52,14 @@ class DeviceList extends React.Component {
             return vendorIds[toPaddedHexString(vendorId, 4)] || ""
         }
         const selectedClass = (i) => {
-            return this.state.devices[i]["path"] === this.state.device["path"] ? "selected" : ""
+            return this.state.devices[i].path === this.state.device.path ? "selected" : ""
         }
         const refresh = () => {
             let selectedDevicePath = this.state.device.path
 
-            this.state.devices = (ipcRenderer.sendSync('list-devices-no-cache') || []).filter(d => d["hid-info"])
+            ipcRenderer.invoke('list-devices-no-cache')
+                .then(devices => this.state.devices = devices.map(d => new Device(d)))
+                .catch(console.log)
             this.state.devices.forEach((d) => {
                 if (d.path == selectedDevicePath) {
                     this.state.device = d
@@ -68,8 +70,10 @@ class DeviceList extends React.Component {
             }
             this.forceUpdate()
         }
-        return (
-            <div className='DeviceList'>
+
+        const showDevices = () => {
+            return (
+                <div className='DeviceList'>
             <div className="container-fluid">
                 <div className="row">
                 <div className="col">
@@ -83,10 +87,10 @@ class DeviceList extends React.Component {
                     </thead>
                     <tbody>
                         {this.state.devices.map((d, i) =>
-                            <tr key={d['path']} onClick={() => selectDevice(i)} className={"clickable-row " + selectedClass(i) } index={i}>
+                            <tr key={d.path} onClick={() => selectDevice(i)} className={"clickable-row " + selectedClass(i) } index={i}>
                                 <th scope="row"><Mouse></Mouse></th>
                                 <td>
-                                    {(d['hid-info'] || {})['manufacturer'] || vendorName(d["hid-info"]["vendorId"]) }                                        
+                                    {d.manufacturer || vendorName(d.vendorId) }                                        
                                 </td>
                                 <td></td>
                             </tr>
@@ -102,15 +106,15 @@ class DeviceList extends React.Component {
                         <form>
                             <div className="row">
                                 <div className="col">
-                                    <label className="form-label" htmlFor="product-id">
+                                    <label className="form-label" htmlFor="manufacturer">
                                         Manufacturer
                                     </label>
                                     <input 
                                         type="text"
                                         className="form-control"
-                                        id="product-id"
+                                        id="manufacturer"
                                         placeholder="Unknown"
-                                        value={this.state.device["hid-info"]["manufacturer"]}
+                                        value={this.state.device.manufacturer}
                                         disabled>
                                     </input>
                                     
@@ -126,7 +130,7 @@ class DeviceList extends React.Component {
                                         className="form-control"
                                         id="vendor-name"
                                         placeholder="Unknown"
-                                        value={vendorName(this.state.device["hid-info"]["vendorId"])}
+                                        value={vendorName(this.state.device.vendorId)}
                                         disabled>
                                     </input>
                                 </div>
@@ -141,7 +145,7 @@ class DeviceList extends React.Component {
                                         className="form-control"
                                         id="product-id"
                                         placeholder="Product Id"
-                                        value={this.state.device["hid-info"]["productId"]}
+                                        value={this.state.device.productId}
                                         disabled>
                                     </input>
                                     
@@ -155,7 +159,7 @@ class DeviceList extends React.Component {
                                         className="form-control"
                                         id="vendor-id"
                                         placeholder="Vendor Id"
-                                        value={this.state.device["hid-info"]["vendorId"]}
+                                        value={this.state.device.vendorId}
                                         disabled>
                                     </input>
                                     
@@ -168,7 +172,7 @@ class DeviceList extends React.Component {
                                         type="radio" 
                                         name="horizontalScroolDirection" 
                                         value="1"
-                                        checked={this.state.device["values"]["FlipFlopWheel"]["value"] == 1}
+                                        checked={this.state.device.naturalScroll}
                                         onChange={changeVerticalScroll}
                                         id="natural-scrool">
                                     </input>
@@ -181,7 +185,7 @@ class DeviceList extends React.Component {
                                         className="form-check-input"
                                         type="radio"
                                         name="horizontalScroolDirection"
-                                        checked={this.state.device["values"]["FlipFlopWheel"]["value"] == 0}
+                                        checked={!this.state.device.naturalScroll}
                                         onChange={changeVerticalScroll}
                                         value="0"
                                         id="unatual-scrool">
@@ -197,7 +201,15 @@ class DeviceList extends React.Component {
                 </div>
             </div>
             </div>
-        );
+            );
+        }
+
+       if (this.state.devices.length > 0) {
+            return showDevices()
+        } else {
+            return (<div>Loading</div>)
+        }            
+
     }
     
   }
